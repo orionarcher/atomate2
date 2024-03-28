@@ -129,3 +129,74 @@ def test_production_maker(interchange, tmp_path, run_job):
     ]
     # Test that the state interval is respected
     assert calc_output.steps == list(range(1, 6))
+
+
+def test_stores(interchange, tmp_path, classical_md_data):
+    from jobflow import JobStore, run_locally
+    from maggma.stores import FileStore, MemoryStore
+
+    # Create an instance of ProductionMaker with custom parameters
+    production_maker = ProductionMaker(
+        name="test_production",
+        energy_maker=EnergyMinimizationMaker(max_iterations=1),
+        npt_maker=NPTMaker(n_steps=5, pressure=1.0, state_interval=1),
+        anneal_maker=AnnealMaker.from_temps_and_steps(
+            anneal_temp=400, final_temp=300, n_steps=5
+        ),
+        nvt_maker=NVTMaker(n_steps=5),
+    )
+
+    # Run the ProductionMaker flow
+    production_flow = production_maker.make(interchange, output_dir=tmp_path)
+
+    docs_store = MemoryStore()
+
+    file_store = FileStore(path=classical_md_data / "file_store", read_only=False)
+    file_store.connect()
+
+    store = JobStore(
+        docs_store,
+        additional_stores={"data": file_store},
+        # save={"data": "interchange"},
+    )
+    store.connect()
+
+    output = run_locally(production_flow, store=store, ensure_success=True)
+    # task_doc = list(output.values())[-1][1].output
+    # one = file_store.query_one()
+    assert output
+
+
+def test_minio(interchange, tmp_path, classical_md_data):
+    from maggma.stores import MemoryStore
+    from maggma.stores.aws import S3Store
+
+    # Connect to MongograntStore
+    # aeccar0_fs_id_storer0_fs_id_store = MongograntStore(
+    #     "ro:mongodb07.nersc.gov/XXX", "atomate_aeccar0_fs_index", key="fs_id"
+    # )
+    # aeccar0_fs_id_store.connect()
+    index = MemoryStore(collection_name="index", key="fs_id")
+    index.connect()
+
+    # Connect to S3Store
+    aeccar0_store = S3Store(
+        index=index,
+        bucket="oac",
+        s3_profile="oac",
+        key="fs_id",
+        endpoint_url="https://next-gen-minio2.materialsproject.org/",
+        # sub_dir="/",
+    )
+    aeccar0_store.connect()
+
+    # Connect to AWS S3
+    # s3 = boto3.resource(
+    #     "s3",
+    #     endpoint_url="https://next-gen-minio2.materialsproject.org/buckets",
+    #     aws_access_key_id="XD6Popy5tEguyCVIEEPb",
+    #     aws_secret_access_key="XQZtBkPU4R09Q8JQK23cE3kpEzu1elmCCZvMoAWY",
+    # )
+    #
+    # # Upload file to S3 bucket
+    # s3.meta.client.upload_file(Filename="test_core.py", Bucket="oac", Key="example")
