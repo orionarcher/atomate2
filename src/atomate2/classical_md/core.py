@@ -48,7 +48,7 @@ def openff_job(method: Callable) -> job:
     """
     # todo: add data keyword argument to specify where to write
     #  bigger files like trajectory files
-    return job(method, output_schema=ClassicalMDTaskDocument)
+    return job(method, output_schema=ClassicalMDTaskDocument, data="interchange")
 
 
 @openff_job
