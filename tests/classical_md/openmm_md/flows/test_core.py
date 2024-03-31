@@ -133,7 +133,7 @@ def test_production_maker(interchange, tmp_path, run_job):
 
 def test_stores(interchange, tmp_path, classical_md_data):
     from jobflow import JobStore, run_locally
-    from maggma.stores import FileStore, MemoryStore
+    from maggma.stores import MemoryStore, S3Store
 
     # Create an instance of ProductionMaker with custom parameters
     production_maker = ProductionMaker(
@@ -150,14 +150,25 @@ def test_stores(interchange, tmp_path, classical_md_data):
     production_flow = production_maker.make(interchange, output_dir=tmp_path)
 
     docs_store = MemoryStore()
+    index = MemoryStore(collection_name="index", key="fs_id")
+    index.connect()
 
-    file_store = FileStore(path=classical_md_data / "file_store", read_only=False)
-    file_store.connect()
+    # Connect to S3Store
+    minio_store = S3Store(
+        index=index,
+        bucket="oac",
+        s3_profile="oac",
+        key="fs_id",
+        endpoint_url="https://next-gen-minio.materialsproject.org/",
+        # sub_dir="/",
+        # TODO: define searchable fields
+    )
+    minio_store.connect()
 
     store = JobStore(
         docs_store,
-        additional_stores={"data": file_store},
-        # save={"data": "interchange"},
+        additional_stores={"data": minio_store},
+        save={"data": "interchange"},
     )
     store.connect()
 
