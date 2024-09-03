@@ -215,3 +215,12 @@ class NequipMDMaker(ForceFieldMDMaker):
 
     name: str = f"{MLFF.Nequip} MD"
     force_field_name: str = f"{MLFF.Nequip}"
+
+
+@dataclass
+class ORBMDMaker(ForceFieldMDMaker):
+    """Perform an MD run with GAP."""
+
+    name: str = f"{MLFF.ORB} static"
+    force_field_name: str = f"{MLFF.ORB}"
+    calculator_kwargs: dict = field(default_factory=lambda: {"device": "cpu"})
