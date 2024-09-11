@@ -21,9 +21,9 @@ from atomate2.openff.utils import (
     counts_from_box_size,
     counts_from_masses,
     create_mol_spec,
-    increment_name,
     merge_specs_by_name_and_smiles,
 )
+from atomate2.openmm.utils import increment_name
 
 
 def test_molgraph_to_openff_pf6(mol_files):
