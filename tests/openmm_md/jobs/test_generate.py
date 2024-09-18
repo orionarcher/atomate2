@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 import numpy as np
 import openff.toolkit as tk
 from emmet.core.openmm import OpenMMInterchange
