@@ -224,9 +224,11 @@ def get_average_volume_from_icsd(
     def get_entry_from_dict(chem_env: str) -> dict | None:
         data = icsd_avg_vols[icsd_avg_vols["chem_env"] == chem_env]
         data = data[
-            data["with_oxi"]
-            if (not ignore_oxi_states and len(data[data["with_oxi"]]) > 0)
-            else ~data["with_oxi"]
+            (
+                data["with_oxi"]
+                if (not ignore_oxi_states and len(data[data["with_oxi"]]) > 0)
+                else ~data["with_oxi"]
+            )
         ]
         if len(data) > 0:
             return {k: data[k].squeeze() for k in ("avg_vol", "count")}
@@ -261,7 +263,7 @@ def get_random_packed_structure(
     tol: float = 2.0,
     return_as_job: bool = False,
     vol_per_atom_source: float | str = "mp",
-    db_kwargs: dict | None = {"use_cached": True},
+    db_kwargs: dict | None = {"use_cached": True},  # noqa: B006
     packmol_seed: int = 1,
     packmol_output_dir: str | Path | None = None,
 ) -> Structure | Job:
@@ -278,7 +280,7 @@ def get_random_packed_structure(
     target_atoms : int
         The target number of atoms in the structure.
     vol_multiply : float
-        The factor to multiply the strcuture volume by.
+        The factor to multiply the structure volume by.
     tol : float
         The tolerance to apply to the box size.
     return_as_job : bool
@@ -315,6 +317,8 @@ def get_random_packed_structure(
         )
     if isinstance(composition, str):
         composition = Composition(composition)
+    if isinstance(composition, dict):
+        composition = Composition.from_dict(composition)
 
     db_kwargs = db_kwargs or {}
     if isinstance(vol_per_atom_source, (float, int)):
