@@ -224,9 +224,11 @@ def get_average_volume_from_icsd(
     def get_entry_from_dict(chem_env: str) -> dict | None:
         data = icsd_avg_vols[icsd_avg_vols["chem_env"] == chem_env]
         data = data[
-            data["with_oxi"]
-            if (not ignore_oxi_states and len(data[data["with_oxi"]]) > 0)
-            else ~data["with_oxi"]
+            (
+                data["with_oxi"]
+                if (not ignore_oxi_states and len(data[data["with_oxi"]]) > 0)
+                else ~data["with_oxi"]
+            )
         ]
         if len(data) > 0:
             return {k: data[k].squeeze() for k in ("avg_vol", "count")}
@@ -315,6 +317,8 @@ def get_random_packed_structure(
         )
     if isinstance(composition, str):
         composition = Composition(composition)
+    if isinstance(composition, dict):
+        composition = Composition.from_dict(composition)
 
     struct_db = (
         vol_per_atom_source.lower() if isinstance(vol_per_atom_source, str) else None
