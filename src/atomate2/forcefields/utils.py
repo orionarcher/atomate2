@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import os
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
 
@@ -42,7 +43,7 @@ def ase_calculator(calculator_meta: str | dict, **kwargs: Any) -> Calculator | N
     """
     calculator = None
 
-    if isinstance(calculator_meta, str) and calculator_meta in map(str, MLFF):
+    if isinstance(calculator_meta, str | MLFF) and calculator_meta in map(str, MLFF):
         calculator_name = MLFF(calculator_meta.split("MLFF.")[-1])
 
         if calculator_name == MLFF.CHGNet:
@@ -59,9 +60,21 @@ def ase_calculator(calculator_meta: str | dict, **kwargs: Any) -> Calculator | N
             calculator = PESCalculator(potential, **kwargs)
 
         elif calculator_name == MLFF.MACE:
-            from mace.calculators import mace_mp
+            import torch
+            from mace.calculators import MACECalculator, mace_mp
 
-            calculator = mace_mp(**kwargs)
+            if os.path.isfile(kwargs.get("model")):
+                model_path = kwargs.get("model")
+                device = kwargs.get("device") or (
+                    "cuda" if torch.cuda.is_available() else "cpu"
+                )
+                calculator = MACECalculator(
+                    model_paths=model_path,
+                    device=device,
+                    **kwargs,
+                )
+            else:
+                calculator = mace_mp(**kwargs)
 
         elif calculator_name == MLFF.GAP:
             from quippy.potential import Potential
@@ -93,7 +106,7 @@ def ase_calculator(calculator_meta: str | dict, **kwargs: Any) -> Calculator | N
         calculator = calc_cls(**kwargs)
 
     if calculator is None:
-        raise ValueError("Could not create ASE calculator.")
+        raise ValueError(f"Could not create ASE calculator for {calculator_meta}.")
 
     return calculator
 
