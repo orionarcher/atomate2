@@ -3,7 +3,7 @@ default_language_version:
 exclude: ^(.github/|tests/test_data/abinit/)
 repos:
 - repo: https://github.com/charliermarsh/ruff-pre-commit
-  rev: v0.14.2
+  rev: v0.14.6
   hooks:
   - id: ruff
     args: [--fix]
@@ -16,7 +16,7 @@ repos:
   - id: end-of-file-fixer
   - id: trailing-whitespace
 - repo: https://github.com/asottile/pyupgrade
-  rev: v3.21.0
+  rev: v3.21.2
   hooks:
     - id: pyupgrade
 - repo: https://github.com/asottile/blacken-docs
@@ -48,7 +48,7 @@ repos:
     args: [--ignore-words-list, 'titel,statics,ba,nd,te,atomate']
     types_or: [python, rst, markdown]
 - repo: https://github.com/kynan/nbstripout
-  rev: 0.8.1
+  rev: 0.8.2
   hooks:
     - id: nbstripout
       args:
